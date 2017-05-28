@@ -1,0 +1,50 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <!-- NOTE: EditTextPreference accepts EditText attributes. -->
+    <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue="1"
+        android:inputType="number"
+        android:key="point"
+        android:summary="1"
+        android:maxLines="1"
+        android:numeric="integer"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/pref_title_display_points" />
+
+    <!--
+         NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
+         dismiss it. 
+    -->
+    <!-- NOTE: ListPreference's summary should be set to its value by the activity code. -->
+    <ListPreference
+        android:defaultValue="3"
+        android:entries="@array/pref_seen_list_titles"
+        android:entryValues="@array/pref_seen_list_values"
+        android:key="seen"
+        android:summary="3"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_seen" />
+    <ListPreference
+        android:defaultValue="10"
+        android:entries="@array/pref_unseen_list_titles"
+        android:entryValues="@array/pref_unseen_list_values"
+        android:summary="10"
+        android:key="unseen"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_unseen" />
+
+    <ListPreference
+        android:defaultValue="0"
+        android:entries="@array/pref_game_type_titles"
+        android:entryValues="@array/pref_game_type_values"
+        android:key="game_type"
+        android:summary="Maal Dhus"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_game_type" />
+</PreferenceScreen>
