@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Marriage Point Calculator</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_welcome_">Marriage Point Calculator</string>
+    <string name="title_activity_player_selection">Marriage</string>
+    <string name="welcome_message">Welcome To Marriage Point Calculator</string>
+    <string name="title_activity_test">Test</string>
+    <string name="title_activity_score_card">Score Card</string>
+    <string name="title_activity_help">Help</string>
+     <string name="title_activity_about">About</string>
+    <string name="help_text">
+        <b>TO CALCULATE POINTS.</b>\n\n
+        <b>Initialization</b>\n
+        1. Enter number of players(2-5) and press Submit.\n
+        2.Enter Name of players(Optional...You can skip this step, Default Name will be used)\n
+        3.Press Continue.\n\n
+        
+        <b>Point Calculation</b>\n
+        1. Choose the Winner by clicking on RadioButton (circular) on right of the Player Name.\n
+        2. Select the players who have Seen Maal using CheckBox (Rectangular) to the right of Player Name.\n
+        3. Enter the Maal obtained by each Player who have seen.\n
+        4. Press Calculate to calculate the points obtained by each player.
+         Positive point denotes gain by player and negative point denotes loss.\n
+        5. Press save button to save the score.\n
+        Scorecard will be displayed that will show Points earned in Each Round and Total Points one has obtained.\n
+        6. Press BACK softkey to enter score of Next Round.
+        7. Repeat all steps to Calculate Points for Each Round.\n\n
+        
+        <b>Note</b>\n
+        1. You can re-calculate the scores before choosing to save if any mistake is done.(e.g. forgot to check someone as seen or wrong value of Maal is entered.)\n
+        2. If the App is force closed or process is killed by system, the App will retain score and ask you in beginning if you want to Resume.\n
+        3. <b>Hamro keyboard is not supported in the App. Please use other keyboard.</b>\n\n
+        
+        <b>Preference Setting</b>\n
+        1. To set Rate per Points.\nClick on menu->settings->Rate per Points\n\n
+        
+        2. To set Seen and Unseen penalty.\nClick on menu->setting->Seen Penalty/Unseen Penalty\n\n
+        
+        3. To change Game Mode.\nClick on menu->setting->Game Type.\n
+        
+        4. To view Score in Main Screen.\nClick on menu->View Score.
+        
+        </string>
+
+    <string name="about_text">
+       Marriage is a famous card game popular in South Asian Country like Nepal and India.
+       The purpose of this App is to help players calculate points.
+       It uses Center Collection Algorithm to calculate points.\n
+       Features:\n
+       1. Supports variable player number(2-5).\n
+       2. User defined point rate.\n
+       3. User defined seen and unseen penalty.\n
+       4. Two modes of Game Playing\n
+       		\ti. <b>Traditional</b>\n
+       		\t\t Maal of unseen players will also be counted in calculation.\n
+       		\tii. <b>Maal Dhus</b>\n
+       		\t\t Maal of unseen players will not be counted in calculation.\n
+       
+       5. Cumulative scores are saved.\n
+       6. Score is resumed even if App is force closed.\n\n\n
+       If you find any bug in App,Please report it to following email address\n
+       Developer: Som Prasad Shrestha © \n
+       E-mail: crestasom@gmail.com
+       
+       
+        
+        </string>
+    
+</resources>
