@@ -165,7 +165,7 @@ public class ScoreCard extends Activity {
 		// display.setText(score.get(0).toString());
 		// round.addView(display);
 		for (i = 0; i < recordNo; i++) {
-			n = i + 1;
+			/*n = i + 1;
 			display = new TextView(this);
 			display.setTextAppearance(getApplicationContext(),
 					R.style.text_style);
@@ -175,15 +175,27 @@ public class ScoreCard extends Activity {
 
 
 		//	display.setTextSize(TypedValue.COMPLEX_UNIT_SP,12);
-			round.addView(display);
+			round.addView(display);*/
 		}
 
-		pixels = (int) (85 * scale + 0.5f);
+
 		for (i = 0; i < recordNo; i++) {
 			newLayout = new LinearLayout(this);
 			newLayout.setLayoutParams(new LayoutParams(
 					LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 			newLayout.setOrientation(LinearLayout.HORIZONTAL);
+			newLayout.setBackgroundResource(R.drawable.rounded_layout);
+
+			n = i + 1;
+			display = new TextView(this);
+			display.setTextAppearance(getApplicationContext(),
+					R.style.text_style);
+			display.setText(String.valueOf(n));
+			pixels = (int) (55 * scale + 0.5f);
+			display.setGravity(Gravity.CENTER);
+			display.setWidth(pixels);
+			newLayout.addView(display);
+			pixels = (int) (85 * scale + 0.5f);
 			for (j = 0; j < playerNo; j++) {
 				display = new TextView(this);
 				display.setText(String.valueOf(scr[i][j]));
@@ -209,9 +221,12 @@ public class ScoreCard extends Activity {
 		display = new TextView(this);
 		display.setText("Total");
 		display.setTextAppearance(getApplicationContext(), R.style.text_style);
-		//display.setWidth(pixels);
+		pixels = (int) (55 * scale + 0.5f);
+		display.setWidth(pixels);
         //display.setTextSize(TypedValue.COMPLEX_UNIT_SP,12);
 		totalDisplay.addView(display);
+
+		pixels = (int) (85 * scale + 0.5f);
 
 		for (i = 0; i < playerNo; i++) {
 			display = new TextView(this);

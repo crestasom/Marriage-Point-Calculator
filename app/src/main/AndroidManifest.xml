@@ -16,17 +16,17 @@
         android:label="Marriage Point Calculator"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.example.marriagepointcalculator.MainActivity"
+            android:name="com.crestaSom.marriagepointcalculator.MainActivity"
             android:screenOrientation="portrait"
             android:label="Marriage Point Calculator" >
         </activity>
         <activity
-            android:name="com.example.marriagepointcalculator.Welcome_Activity"
+            android:name="com.crestaSom.marriagepointcalculator.Welcome_Activity"
             android:label="@string/title_activity_welcome_" >
         </activity>
         <activity
             android:screenOrientation="portrait"
-            android:name="com.example.marriagepointcalculator.PlayerSelection"
+            android:name="com.crestaSom.marriagepointcalculator.PlayerSelection"
             android:label="Player Details" >
             <intent-filter android:label="Marriage Point Calculator" >
                 <action android:name="android.intent.action.MAIN" />
@@ -35,27 +35,27 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.example.marriagepointcalculator.Test"
+            android:name="com.crestaSom.marriagepointcalculator.Test"
             android:label="@string/title_activity_test" >
         </activity>
         <activity
-            android:name="com.example.marriagepointcalculator.ScoreCard"
+            android:name="com.crestaSom.marriagepointcalculator.ScoreCard"
             android:screenOrientation="landscape"
             android:label="@string/title_activity_score_card" >
         </activity>
         <activity
-            android:name="com.example.marriagepointcalculator.SettingsActivity"
+            android:name="com.crestaSom.marriagepointcalculator.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:theme="@android:style/Theme.Holo.Dialog" >
         </activity>
         <activity
-            android:name="com.example.marriagepointcalculator.HelpActivity"
+            android:name="com.crestaSom.marriagepointcalculator.HelpActivity"
             android:label="@string/title_activity_help"
              android:theme="@android:style/Theme.Translucent.NoTitleBar"
              >
         </activity>
         <activity
-            android:name="com.example.marriagepointcalculator.AboutActivity"
+            android:name="com.crestaSom.marriagepointcalculator.AboutActivity"
             android:label="@string/title_activity_about"
              android:theme="@android:style/Theme.Translucent.NoTitleBar"
              >

@@ -3,11 +3,12 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="#ccd8ff"
-    tools:context="com.example.marriagepointcalculator.ScoreCard">
+    tools:context="com.crestaSom.marriagepointcalculator.ScoreCard">
 
     <LinearLayout
         android:id="@+id/playerNames"
-        android:layout_width="fill_parent"
+        android:background="@drawable/rounded_border"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
@@ -60,7 +61,8 @@
 
     <LinearLayout
         android:id="@+id/total"
-        android:layout_width="match_parent"
+        android:background="@drawable/rounded_border"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignLeft="@+id/scrollView"
