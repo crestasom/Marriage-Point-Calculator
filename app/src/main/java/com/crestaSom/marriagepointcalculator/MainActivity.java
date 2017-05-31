@@ -681,7 +681,7 @@ public class MainActivity extends Activity implements OnClickListener,
             String[] pList=penaltyList.split(",");
             editor.putBoolean("flag",false);
             editor.commit();
-            Toast.makeText(this,penaltyList,Toast.LENGTH_LONG).show();
+           // Toast.makeText(this,penaltyList,Toast.LENGTH_LONG).show();
 
         }
         int i, j;
