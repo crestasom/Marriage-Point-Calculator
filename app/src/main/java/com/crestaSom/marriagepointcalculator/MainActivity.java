@@ -1,8 +1,12 @@
 package com.crestaSom.marriagepointcalculator;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,16 +15,25 @@ import java.util.Map;
 
 import com.example.testappv4.R;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.Toolbar;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.util.Log;
@@ -33,6 +46,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -46,17 +60,20 @@ import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.support.v7.app.AppCompatActivity;
 
-public class MainActivity extends Activity implements OnClickListener,
+public class MainActivity extends AppCompatActivity implements OnClickListener,
         OnCheckedChangeListener,
         android.widget.CompoundButton.OnCheckedChangeListener {
 
-    LinearLayout mainLayout, newLayout;
-    RelativeLayout buttonLayout;
-    TextView player, testDisplay;
+    private static final int READ_FILE = 10;
+    LinearLayout mainLayout;
+    RelativeLayout buttonLayout, newLayout;
+    TextView player, testDisplay, tvWin, tvPlayer, tvSeen, tvPoints, tvResult, tvPayment;
     EditText pointsEarned;
     CheckBox seens;
-    int menuId=-1;
+    int menuId = -1;
+    MenuItem action_add;
     RadioButton wins;
     Button calculate, save;
     EditText p1, p2, p3, p4, p5;
@@ -64,13 +81,15 @@ public class MainActivity extends Activity implements OnClickListener,
     int[] pmt;
     int[] pnt;
     TextView[] playerTitle;
-    String[] playerName;
+    String[] playerName = {"", "", "", "", "", ""};
     String test = "";
     Intent recv, nextIntent;
     List<CheckBox> seenList;
     List<EditText> pointList;
-    boolean[] lessPoints,penalty15;
-
+    boolean[] lessPoints = {false, false, false, false, false}, penalty15 = {false, false, false, false, false};
+    private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 8;
+    CoordinatorLayout coordinatorLayout;
+    Snackbar snackbar;
     List<TextView> result, payment;
     List<RadioButton> winList;
     ArrayList<String> players;
@@ -82,60 +101,103 @@ public class MainActivity extends Activity implements OnClickListener,
     ArrayList<Integer> temp;
     SharedPreferences prefs;
     SharedPreferences.Editor editor;
-    final String PREFKEY="penaltyList";
+    final String PREFKEY = "penaltyList";
 
     int index = -1;
+    TextView save_menu;
+    SharedPreferences getPrefs;
 
-    @SuppressLint("UseSparseArrays")
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        try {
-            super.onCreate(savedInstanceState);
-            setContentView(R.layout.activity_main);
-            score = new HashMap<Integer, ArrayList<Integer>>();
-            prefs = PreferenceManager
-                    .getDefaultSharedPreferences(getBaseContext());
-            editor=prefs.edit();
-            temp = new ArrayList<Integer>();
-            // arr=new int[5][25];
-            playerName = new String[6];
-            pnt = new int[6];
-            pt = new int[6];
-            pmt = new int[6];
-            playerTitle=new TextView[6];
-            lessPoints = new boolean[6];
-            penalty15=new boolean[6];
-            players = new ArrayList<String>();
-            seenList = new ArrayList<CheckBox>();
-            winList = new ArrayList<RadioButton>();
-            pointList = new ArrayList<EditText>();
-            result = new ArrayList<TextView>();
-            payment = new ArrayList<TextView>();
-            testDisplay = (TextView) findViewById(R.id.textView1);
-            //	win = (RadioGroup) findViewById(R.id.radioGroup);
-            if (savedInstanceState != null) {
-                players = savedInstanceState.getStringArrayList("players");
-            } else {
-                recv = getIntent();
-                Bundle bundle = recv.getExtras();
-                players = bundle.getStringArrayList("playerList");
+        Log.i("LOG INFO", "onCreate invoked");
+        /*try {*/
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinarlayout);
+        // my_child_toolbar is defined in the menu_action_calculate_view file
+        Toolbar myChildToolbar =
+                (Toolbar) findViewById(R.id.my_child_toolbar);
+        myChildToolbar.setTitle("Point Calculator");
+        setSupportActionBar(myChildToolbar);
+
+        score = new HashMap<Integer, ArrayList<Integer>>();
+        prefs = PreferenceManager
+                .getDefaultSharedPreferences(getBaseContext());
+        editor = prefs.edit();
+        temp = new ArrayList<Integer>();
+
+        tvWin = (TextView) findViewById(R.id.win);
+        tvPlayer = (TextView) findViewById(R.id.player);
+        tvSeen = (TextView) findViewById(R.id.seen);
+        tvPoints = (TextView) findViewById(R.id.points);
+        tvPayment = (TextView) findViewById(R.id.payment);
+        tvResult = (TextView) findViewById(R.id.result);
+
+
+        // arr=new int[5][25];
+        playerName = new String[6];
+        pnt = new int[6];
+        pt = new int[6];
+        pmt = new int[6];
+        playerTitle = new TextView[6];
+        lessPoints = new boolean[6];
+        penalty15 = new boolean[6];
+        players = new ArrayList<String>();
+        seenList = new ArrayList<CheckBox>();
+        winList = new ArrayList<RadioButton>();
+        pointList = new ArrayList<EditText>();
+        result = new ArrayList<TextView>();
+        payment = new ArrayList<TextView>();
+        testDisplay = (TextView) findViewById(R.id.textView1);
+        //	win = (RadioGroup) findViewById(R.id.radioGroup);
+        /*if (savedInstanceState != null) {
+            players = savedInstanceState.getStringArrayList("players");
+        } else {*/
+        recv = getIntent();
+        Bundle bundle = recv.getExtras();
+        if (bundle != null) {
+            players = bundle.getStringArrayList("playerList");
+        }
+        if (players.size() == 0) {
+            /*players = bundle.getStringArrayList("playerList");*/
+            players = getPlayerList();
+               /* getPrefs = getSharedPreferences("players", 0);
+                Log.i("pref object", getPrefs.toString());
+                String s;
+                for (int i = 1; i <= 6; i++) {
+                    s = getPrefs.getString("player" + i, "NA");
+                    if (!s.equals("NA")) {
+                        Log.i("PlayerName"+i,s);
+                        players.add(s);
+                    }
+                }*/
+        }
+
+        // }
+        // testDisplay.setText(text);
+        // players=recv.getStringArrayListExtra("playerName");
+        playerNo = players.size();
+        for (int i = 0; i < playerNo; i++) {
+            score.put(i, new ArrayList<Integer>());
+        }
+        mainLayout = (LinearLayout) findViewById(R.id.mainLayout);
+        buttonLayout = new RelativeLayout(this);
+        buttonLayout.setLayoutParams(new LayoutParams(
+                LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+        //buttonLayout.setOrientation(LinearLayout.HORIZONTAL);
+
+        findViewById(android.R.id.content).post(new Runnable() {
+            @Override
+            public void run() {
+                displayLayout();
             }
-            // testDisplay.setText(text);
-            // players=recv.getStringArrayListExtra("playerName");
-            playerNo = players.size();
-            for (int i = 0; i < playerNo; i++) {
-                score.put(i, new ArrayList<Integer>());
-            }
-            mainLayout = (LinearLayout) findViewById(R.id.mainLayout);
-            buttonLayout = new RelativeLayout(this);
-            buttonLayout.setLayoutParams(new LayoutParams(
-                    LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-            //buttonLayout.setOrientation(LinearLayout.HORIZONTAL);
-            displayLayout();
-        } catch (NullPointerException ex) {
+        });
+
+        /*} catch (NullPointerException ex) {
             Log.e("Null pointer exception", ex.getMessage());
 
-        }
+        }*/
         // calculate=(Button)findViewById(R.id.calculate);
         // calculate.setOnClickListener(this);
         // win=(RadioGroup)findViewById(R.id.win);
@@ -152,6 +214,63 @@ public class MainActivity extends Activity implements OnClickListener,
         // seen5.setOnCheckedChangeListener(this);
     }
 
+    @Override
+    protected void onStop() {
+        Log.i("LOG INFO", "onStop invoked");
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.i("LOG INFO", "onDestroy invoked");
+        super.onDestroy();
+
+    }
+
+    public ArrayList<String> getPlayerList() {
+        ArrayList<String> players = new ArrayList<String>();
+        File root = new File(Environment.getExternalStorageDirectory(), "data/marriage point calculator");
+
+        if (!root.exists()) {
+            root.mkdirs();
+        }
+        File gpxfile = new File(root, "players.txt");
+        FileInputStream in = null;
+        try {
+            in = new FileInputStream(gpxfile);
+            Log.i("log", in.toString());
+            BufferedReader myReader = new BufferedReader(
+                    new InputStreamReader(in));
+            String str = "";
+            String a[] = {"0", "0", "0", "0", "0"};
+            try {
+                while ((str = myReader.readLine()) != null) {
+                    a = new String[5];
+                    //tempList.add(Integer.parseInt(str));
+                    //int tmp;
+                    //display.setText(str);
+                    a = str.split(",");
+                    for (int i = 0; i < a.length; i++) {
+                        players.add(a[i]);
+                    }
+
+                    myReader.close();
+                    in.close();
+                }
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                //display.setText(e.getMessage());
+            }
+
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            //e.printStackTrace();
+            //	display.setText(e.getMessage());
+        }
+
+        return players;
+    }
 
     @Override
     public void onBackPressed() {
@@ -160,6 +279,7 @@ public class MainActivity extends Activity implements OnClickListener,
         alertDialogBuilder
                 .setMessage("Are you sure,You want to exit? All game data will be lost!!!");
         alertDialogBuilder.setNegativeButton("Yes",
+
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
@@ -198,9 +318,10 @@ public class MainActivity extends Activity implements OnClickListener,
     public void onCreateContextMenu(ContextMenu menu, View v,
                                     ContextMenuInfo menuInfo) {
         // TODO Auto-generated method stub
-        menuId=v.getId();
+
+        menuId = v.getId();
         menu.add(Menu.NONE, 1, Menu.NONE, "Enable/Disable Less Point");
-        menu.add(Menu.NONE, 2, Menu.NONE, "Enable/Disable 15 Point Penalty");
+        //  menu.add(Menu.NONE, 2, Menu.NONE, "Enable/Disable 15 Point Penalty");
         super.onCreateContextMenu(menu, v, menuInfo);
 
     }
@@ -212,16 +333,16 @@ public class MainActivity extends Activity implements OnClickListener,
         switch (item.getItemId()) {
             case 1:
                 /*Toast.makeText(this, String.valueOf(menuId), Toast.LENGTH_SHORT).show();*/
-                if(lessPoints[menuId]){
-                    lessPoints[menuId]=false;
+                if (lessPoints[menuId]) {
+                    lessPoints[menuId] = false;
                     playerTitle[menuId].setBackgroundResource(R.drawable.rounded_border);
                     seenList.get(menuId).setChecked(false);
                     seenList.get(menuId).setEnabled(true);
 
 
-                }else{
-                    lessPoints[menuId]=true;
-                    penalty15[menuId]=false;
+                } else {
+                    lessPoints[menuId] = true;
+                    penalty15[menuId] = false;
                     seenList.get(menuId).setEnabled(true);
                     pointList.get(menuId).setEnabled(true);
                     pointList.get(menuId).setText("");
@@ -233,8 +354,8 @@ public class MainActivity extends Activity implements OnClickListener,
                 break;
 
             case 2:
-                if(penalty15[menuId]){
-                    penalty15[menuId]=false;
+                if (penalty15[menuId]) {
+                    penalty15[menuId] = false;
                     playerTitle[menuId].setBackgroundResource(R.drawable.rounded_border);
                     seenList.get(menuId).setChecked(false);
                     seenList.get(menuId).setEnabled(true);
@@ -242,8 +363,8 @@ public class MainActivity extends Activity implements OnClickListener,
                     pointList.get(menuId).setText("");
                     pointList.get(menuId).setHint("0-100");
 
-                }else{
-                    penalty15[menuId]=true;
+                } else {
+                    penalty15[menuId] = true;
                     //lessPoints[menuId]=false;
                     playerTitle[menuId].setBackgroundResource(R.drawable.rounded_border_red);
                     seenList.get(menuId).setChecked(false);
@@ -262,23 +383,51 @@ public class MainActivity extends Activity implements OnClickListener,
     void displayLayout() {
         final float scale = this.getResources().getDisplayMetrics().density;
         int pixels = (int) (40 * scale + 0.5f);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, 0, 0, 15);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+        params.setMargins(0, 0, 0, 30);
 
+        LinearLayout tempLayout;
+
+        int[] location = new int[2];
+        tvPlayer.getLocationOnScreen(location);
+        int x1 = location[0] + tvPlayer.getWidth() / 2;
+        tvSeen.getLocationOnScreen(location);
+        int x2 = location[0];
+        tvResult.getLocationOnScreen(location);
+        int x4 = location[0] + tvResult.getMeasuredWidth() / 2;
+        tvPoints.getLocationOnScreen(location);
+        int x3 = location[0] + tvPoints.getMeasuredWidth() / 2;
+        tvPayment.getLocationOnScreen(location);
+        int x5 = location[0] + tvPayment.getMeasuredWidth() / 2;
+
+        //  Toast.makeText(this, "" + x1, Toast.LENGTH_LONG).show();
+
+        RelativeLayout relativeLayout;
+        RelativeLayout.LayoutParams params1;
         for (int i = 0; i < playerNo; i++) {
-            newLayout = new LinearLayout(this);
-            newLayout.setLayoutParams(params);
-            newLayout.setOrientation(LinearLayout.HORIZONTAL);
-            int minHeight = (int) (15 * scale + 0.5f);
-            newLayout.setMinimumHeight(minHeight);
+            params = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
 
+
+            //params.setMargins(0, 0, 0, 30);
+            params.bottomMargin = 30;
+            newLayout = new RelativeLayout(this);
+
+            // newLayout.setOrientation(LinearLayout.HORIZONTAL);
+            int minHeight = (int) (15 * scale + 0.5f);
+            params1 = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+            params1.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
             wins = new RadioButton(this);
             wins.setId(i);
+            wins.setTag(R.id.my_radiobutton + i, "");
             wins.setOnCheckedChangeListener(this);
             wins.setHeight(pixels);
             wins.setGravity(Gravity.CENTER);
             winList.add(wins);
-            newLayout.addView(wins);
+
+            newLayout.addView(wins, params1);
+
+            params1 = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+
             playerTitle[i] = new TextView(this);
             playerTitle[i].setText(players.get(i));
             playerTitle[i].setId(i);
@@ -286,23 +435,226 @@ public class MainActivity extends Activity implements OnClickListener,
             registerForContextMenu(playerTitle[i]);
             playerTitle[i].setTextColor(Color.BLACK);
             playerTitle[i].setGravity(Gravity.CENTER);
+
             playerTitle[i].setTextAppearance(getApplicationContext(),
                     R.style.text_style);
 
             pixels = (int) (75 * scale + 0.5f);
             playerTitle[i].setWidth(pixels);
             playerTitle[i].setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-            newLayout.addView(playerTitle[i]);
+            params1.leftMargin = x1 - pixels / 2;
+            newLayout.addView(playerTitle[i], params1);
+
+            params1 = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+            //params1.addRule(RelativeLayout.LEFT_OF,tvSeen.getId());
+            //params1.addRule(RelativeLayout.RIGHT_OF,winList.get(i).getId());
 
             seens = new CheckBox(this);
             seens.setId(i);
+            seens.setTag(R.id.my_checkbox + i, "checkbox" + i);
+
             seens.setGravity(Gravity.CENTER);
             seenList.add(seens);
-            newLayout.addView(seens);
+            params1.leftMargin = x2;
+            newLayout.addView(seens, params1);
+
+
+            params1 = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+            //params1.addRule(RelativeLayout.ALIGN_LEFT,tvPoints.getId());
+            //params1.addRule(RelativeLayout.RIGHT_OF,winList.get(i).getId());
 
             pointsEarned = new EditText(this);
             pointsEarned.setBackgroundResource(R.drawable.rounded_border);
             pointsEarned.setId(i);
+            pointsEarned.setTag(R.id.my_edit_text + i, "");
+
+            pixels = (int) (40 * scale + 0.5f);
+            pointsEarned.setInputType(InputType.TYPE_CLASS_NUMBER);
+            pointsEarned
+                    .setFilters(new InputFilter[]{new FilterInput(0, 100)});
+            pointsEarned.setHint("0-100");
+            pointsEarned.setHintTextColor(Color.DKGRAY);
+            pointsEarned.setGravity(Gravity.CENTER_VERTICAL);
+            // pointsEarned.setBackgroundResource(R.drawable.rounded_edittext);
+            pixels = (int) (60 * scale + 0.5f);
+            params1.leftMargin = x3 - pixels / 2;
+            pointsEarned.setWidth(pixels);
+            pointList.add(pointsEarned);
+
+            newLayout.addView(pointsEarned, params1);
+
+            params1 = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+            params1.leftMargin = x4;
+            //params1.addRule(RelativeLayout.ALIGN_LEFT,tvResult.getId());
+            //params1.addRule(RelativeLayout.RIGHT_OF,winList.get(i).getId());
+            player = new TextView(this);
+            player.setText("0");
+            player.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+            player.setTextAppearance(getApplicationContext(),
+                    R.style.text_style);
+            player.setTextColor(Color.BLACK);
+            pixels = (int) (50 * scale + 0.5f);
+            //  player.setWidth(pixels);
+            player.setGravity(Gravity.CENTER);
+            player.setId(i);
+            result.add(player);
+            newLayout.addView(player, params1);
+
+            params1 = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+            params1.leftMargin = x5;
+            //params1.addRule(RelativeLayout.ALIGN_LEFT,tvPayment.getId());
+            //params1.addRule(RelativeLayout.RIGHT_OF,winList.get(i).getId());
+            player = new TextView(this);
+            player.setText("0");
+            player.setTextColor(Color.BLACK);
+            player.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+            player.setTextAppearance(getApplicationContext(),
+                    R.style.text_style);
+            pixels = (int) (50 * scale + 0.5f);
+            // player.setWidth(pixels);
+            player.setId(i);
+            player.setGravity(Gravity.CENTER);
+            payment.add(player);
+            newLayout.addView(player, params1);
+            newLayout.setBackgroundResource(R.drawable.rounded_layout_main);
+
+            //if (i == 0) {
+            //  newLayout.setPadding(0, 10, 0, 10);
+            //} else {
+            //     newLayout.setPadding(0, 5, 0, 5);
+            //}
+
+            newLayout.setLayoutParams(params);
+
+            newLayout.refreshDrawableState();
+            mainLayout.addView(newLayout);
+            View view = new View(this);
+            view.setMinimumHeight(15);
+            mainLayout.addView(view);
+
+        }
+        RelativeLayout.LayoutParams parm = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        parm.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+
+        calculate = new Button(this);
+        calculate.setText("Calculate");
+        calculate.setTextColor(Color.WHITE);
+        calculate.setId(0);
+        pixels = (int) (100 * scale + 0.5f);
+        //calculate.setWidth(pixels);
+        calculate.setBackgroundResource(R.drawable.custom_button);
+        calculate.setOnClickListener(this);
+        //buttonLayout.addView(calculate, parm);
+
+        parm = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        parm.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+
+
+        save = new Button(this);
+        save.setText("Save");
+        save.setBackgroundResource(R.drawable.custom_button);
+        //save.setWidth(pixels);
+        save.setTextColor(Color.WHITE);
+        save.setId(1);
+        save.setOnClickListener(this);
+        save.setEnabled(false);
+        //buttonLayout.addView(save, parm);
+        mainLayout.addView(buttonLayout);
+        mainLayout.addView(new TextView(this));
+        // mainLayout.addView(win);
+
+    }
+
+
+
+
+
+    /*void displayLayoutUpdated() {
+        final float scale = this.getResources().getDisplayMetrics().density;
+        int pixels = (int) (40 * scale + 0.5f);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+        params.setMargins(0, 0, 0, 15);
+        LinearLayout tempLayout;
+
+
+        RelativeLayout relativeLayout;
+        RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams params2 = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams params3 = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams params4 = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        for (int i = 0; i < playerNo; i++) {
+            newLayout = new LinearLayout(this);
+            newLayout.setLayoutParams(params);
+            newLayout.setOrientation(LinearLayout.HORIZONTAL);
+            int minHeight = (int) (15 * scale + 0.5f);
+
+
+            tempLayout = new LinearLayout(this);
+            tempLayout.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0f));
+
+            tempLayout.setGravity(Gravity.CENTER);
+
+            wins = new RadioButton(this);
+            wins.setId(i);
+            wins.setTag(R.id.my_radiobutton+i,"");
+            wins.setOnCheckedChangeListener(this);
+            wins.setHeight(pixels);
+            wins.setGravity(Gravity.CENTER);
+            winList.add(wins);
+            tempLayout.addView(wins);
+            newLayout.addView(tempLayout);
+
+            tempLayout = new LinearLayout(this);
+            tempLayout.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+
+            tempLayout.setGravity(Gravity.CENTER);
+
+
+            params1.addRule(RelativeLayout.ALIGN_LEFT,tvPlayer.getId());
+            params1.addRule(RelativeLayout.RIGHT_OF,winList.get(i).getId());
+            playerTitle[i] = new TextView(this);
+            playerTitle[i].setText(players.get(i));
+            playerTitle[i].setId(i);
+            playerTitle[i].setBackgroundResource(R.drawable.rounded_border);
+            registerForContextMenu(playerTitle[i]);
+            playerTitle[i].setTextColor(Color.BLACK);
+            playerTitle[i].setGravity(Gravity.CENTER_VERTICAL);
+            playerTitle[i].setTextAppearance(getApplicationContext(),
+                    R.style.text_style);
+
+            pixels = (int) (75 * scale + 0.5f);
+            playerTitle[i].setWidth(pixels);
+            playerTitle[i].setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+
+            tempLayout.addView(playerTitle[i]);
+            newLayout.addView(tempLayout);
+
+            tempLayout = new LinearLayout(this);
+            tempLayout.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, .25f));
+            *//*relativeLayout=new RelativeLayout(this);
+            relativeLayout.setLayoutParams(new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));*//*
+
+            tempLayout.setGravity(Gravity.CENTER);
+            params2.addRule(RelativeLayout.ALIGN_LEFT,tvSeen.getId());
+            params2.addRule(RelativeLayout.RIGHT_OF,winList.get(i).getId());
+
+            seens = new CheckBox(this);
+            seens.setId(i);
+            seens.setTag(R.id.my_checkbox+i,"checkbox"+i);
+
+            seens.setGravity(Gravity.CENTER);
+            seenList.add(seens);
+            tempLayout.addView(seens);
+            newLayout.addView(tempLayout);
+
+
+            tempLayout = new LinearLayout(this);
+            tempLayout.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.125f));
+            tempLayout.setGravity(Gravity.CENTER);
+            pointsEarned = new EditText(this);
+            pointsEarned.setBackgroundResource(R.drawable.rounded_border);
+            pointsEarned.setId(i);
+            pointsEarned.setTag(R.id.my_edit_text+i,"");
 
             pointsEarned.setInputType(InputType.TYPE_CLASS_NUMBER);
             pointsEarned
@@ -312,36 +664,48 @@ public class MainActivity extends Activity implements OnClickListener,
             pointsEarned.setGravity(Gravity.CENTER);
             // pointsEarned.setBackgroundResource(R.drawable.rounded_edittext);
             pixels = (int) (60 * scale + 0.5f);
-            pointsEarned.setWidth(pixels);
+            //pointsEarned.setWidth(pixels);
             // int right=(int)(15*scale+0.5f);
             // pointsEarned.setPadding(0, 0, right, 0);
             pointList.add(pointsEarned);
 
-            newLayout.addView(pointsEarned);
+            tempLayout.addView(pointsEarned);
+            newLayout.addView(tempLayout);
 
+
+            tempLayout = new LinearLayout(this);
+            tempLayout.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.25f));
+
+            tempLayout.setGravity(Gravity.CENTER);
             player = new TextView(this);
             player.setText("0");
             player.setTextAppearance(getApplicationContext(),
                     R.style.text_style);
             player.setTextColor(Color.BLACK);
             pixels = (int) (50 * scale + 0.5f);
-            player.setWidth(pixels);
+            //  player.setWidth(pixels);
             player.setGravity(Gravity.CENTER);
             player.setId(i);
             result.add(player);
-            newLayout.addView(player);
+            tempLayout.addView(player);
+            newLayout.addView(tempLayout);
 
+            tempLayout = new LinearLayout(this);
+            tempLayout.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, .25f));
+
+            tempLayout.setGravity(Gravity.CENTER);
             player = new TextView(this);
             player.setText("0");
             player.setTextColor(Color.BLACK);
             player.setTextAppearance(getApplicationContext(),
                     R.style.text_style);
             pixels = (int) (50 * scale + 0.5f);
-            player.setWidth(pixels);
+            // player.setWidth(pixels);
             player.setId(i);
             player.setGravity(Gravity.CENTER);
             payment.add(player);
-            newLayout.addView(player);
+            tempLayout.addView(player);
+            newLayout.addView(tempLayout);
             newLayout.setBackgroundResource(R.drawable.rounded_layout_main);
             if (i == 0) {
                 newLayout.setPadding(0, 10, 0, 10);
@@ -361,7 +725,7 @@ public class MainActivity extends Activity implements OnClickListener,
         calculate.setTextColor(Color.WHITE);
         calculate.setId(0);
         pixels = (int) (100 * scale + 0.5f);
-        calculate.setWidth(pixels);
+        //calculate.setWidth(pixels);
         calculate.setBackgroundResource(R.drawable.custom_button);
         calculate.setOnClickListener(this);
         buttonLayout.addView(calculate, parm);
@@ -373,7 +737,7 @@ public class MainActivity extends Activity implements OnClickListener,
         save = new Button(this);
         save.setText("Save");
         save.setBackgroundResource(R.drawable.custom_button);
-        save.setWidth(pixels);
+        //save.setWidth(pixels);
         save.setTextColor(Color.WHITE);
         save.setId(1);
         save.setOnClickListener(this);
@@ -383,108 +747,96 @@ public class MainActivity extends Activity implements OnClickListener,
         mainLayout.addView(new TextView(this));
         // mainLayout.addView(win);
 
-    }
+    }*/
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        menu.add(0, 1, 0, "View Score");
-        menu.add(0, 2, 0, "Help");
-        menu.add(0, 3, 0, "About");
-        // return true;
-        return super.onCreateOptionsMenu(menu);
-    }
+        getMenuInflater().inflate(R.menu.menuitems, menu);
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            // return true;
-            Intent menuIntent = new Intent(getApplicationContext(),
-                    SettingsActivity.class);
-            startActivityForResult(menuIntent, 100);
-        } else if (id == 1) {
-            Intent intent = new Intent(getApplicationContext(), ScoreCard.class);
-            for (int i = 0; i < playerNo; i++) {
-                // score.get(i).add(pmt[i]*point);
-                intent.putIntegerArrayListExtra("Score" + i, score.get(i));
-            }
-            intent.putStringArrayListExtra("playerList", players);
-            startActivity(intent);
-        } else if (id == 2) {
-            startActivity(new Intent(getApplicationContext(),
-                    HelpActivity.class));
-        } else if (id == 3) {
-            startActivity(new Intent(getApplicationContext(),
-                    AboutActivity.class));
-        }
-        return super.onOptionsItemSelected(item);
-    }
+       action_add = (MenuItem) menu.findItem(R.id.action_add);
+        /*//TextView saveItemMenu=(TextView) menu.findItem(R.id.action_add).getActionView();
+        TextView calc = (TextView) menu.findItem(R.id.action_calc).getActionView();
+       // calc.setText("Calculate");  // so the int isn't mistaken for a resource id!
+        save_menu = (TextView) menu.findItem(R.id.action_add).getActionView();
+        //save_menu.setText("Save");  // so the int isn't mistaken for a resource id!
+        calc.setOnClickListener(new OnClickListener() {
 
-    @Override
-    public void onClick(View v) {
-        // TODO Auto-generated method stub
-        seen = Integer.parseInt(prefs.getString("seen", "3"));
-        unseen = Integer.parseInt(prefs.getString("unseen", "10"));
-        gameType = Integer.parseInt(prefs.getString("game_type", "3"));
-        point = Integer.parseInt(prefs.getString("point", "1"));
+            @Override
+            public void onClick(View v) {
+                // do your action here
+                seen = Integer.parseInt(prefs.getString("seen", "3"));
+                unseen = Integer.parseInt(prefs.getString("unseen", "10"));
+                gameType = Integer.parseInt(prefs.getString("game_type", "3"));
+                point = Integer.parseInt(prefs.getString("point", "1"));
 
-        for (int x = 0; x < winList.size(); x++) {
-            if (winList.get(x).isChecked()) {
-                index = x;
-            }
-        }
+                for (int x = 0; x < winList.size(); x++) {
+                    if (winList.get(x).isChecked()) {
+                        index = x;
+                    }
+                }
+                if (index == -1) {
+                    *//*Toast.makeText(getApplicationContext(), "Please Select a Winner",
+                            Toast.LENGTH_SHORT).show();*//*
+                    snackbar = Snackbar.make(coordinatorLayout, "Please Select a Winner", Snackbar.LENGTH_SHORT);
+                    snackbar.show();
+                } else {
+                    int i;
+                    boolean flag = false;
+                    total = 0;
+                    for (i = 0; i < playerNo; i++) {
+                        if (seenList.get(i).isChecked() || index == winList.get(i).getId() || gameType == 1) {
+                            try {
+                                pt[i] = Integer.parseInt(pointList.get(i).getText()
+                                        .toString());
+                            } catch (NumberFormatException e) {
+                                *//*Toast.makeText(getApplicationContext(),
+                                        "One or more score is missing",
+                                        Toast.LENGTH_SHORT).show();*//*
+                                snackbar = Snackbar.make(coordinatorLayout, "One or more score is missing", Snackbar.LENGTH_SHORT);
+                                snackbar.show();
+                                flag = true;
+                                break;
+                            }
 
-
-        if (index == -1) {
-            Toast.makeText(getApplicationContext(), "Please Select a Winner",
-                    Toast.LENGTH_SHORT).show();
-
-        } else {
-            int i;
-            // if (calculate.getText().toString().compareTo("Calculate") == 0) {
-            if (v.getId() == 0) {
-                this.total = 0;
-                // testDisplay.setText(String.valueOf(total));
-                for (i = 0; i < playerNo; i++) {
-                    if (seenList.get(i).isChecked() || index == winList.get(i).getId() || gameType == 1) {
-                        try {
-                            pt[i] = Integer.parseInt(pointList.get(i).getText()
-                                    .toString());
-                        } catch (NumberFormatException e) {
-                            Toast.makeText(getApplicationContext(),
-                                    "One or more score is missing",
-                                    Toast.LENGTH_SHORT).show();
-                            // pt[i]=0;
-                            return;
-
+                        } else {
+                            pt[i] = 0;
                         }
-
-                    } else {
-                        pt[i] = 0;
+                        total += pt[i];
                     }
-                    this.total += pt[i];
-                }
-                calculatePenenty();
-                calculatePayment();
-                setPayment();
-                save.setEnabled(true);
-
-            } else if (v.getId() == 1) {
-
-                String penaltyList="";
-                for(int x=0;x<playerNo;x++){
-                    if(penalty15[x]){
-                        penaltyList+=x+",";
+                    if (!flag) {
+                        calculatePenenty();
+                        calculatePayment();
+                        setPayment();
+                        save_menu.setTextColor(Color.WHITE);
+                        save_menu.setEnabled(true);
+                        //action_add.setEnabled(true);
+                        //action_add.setIcon(R.drawable.button_save);
                     }
                 }
 
-                editor.putString(PREFKEY,penaltyList);
-                editor.putBoolean("flag",true);
+
+            }
+        });
+        save_menu.setOnClickListener(new OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                // do your action here
+                // writeScoreFile();
+                Snackbar.make(coordinatorLayout, "Save clicked", Snackbar.LENGTH_SHORT).show();
+                checkPermission(MY_PERMISSIONS_REQUEST_WRITE_STORAGE);
+               *//* int i;
+                String penaltyList = "";
+                for (int x = 0; x < playerNo; x++) {
+                    if (penalty15[x]) {
+                        penaltyList += x + ",";
+                    }
+                }
+
+                editor.putString(PREFKEY, penaltyList);
+                editor.putBoolean("flag", true);
                 editor.commit();
 
                 flag = false;
@@ -537,9 +889,505 @@ public class MainActivity extends Activity implements OnClickListener,
                 // score.get(i));
                 // }
                 nextIntent.putStringArrayListExtra("playerList", players);
-                startActivity(nextIntent);
+                startActivity(nextIntent);*//*
 
             }
+        });*/
+       // menu.add(0, 1, 0, "View Score");
+        menu.add(0, R.id.my_setting, 0, "Setting");
+        menu.add(0, 2, 0, "Help");
+        menu.add(0, 3, 0, "About");
+        // return true;
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    private boolean checkFile() {
+
+        File text = new File(Environment.getExternalStorageDirectory(),
+                "data/marriage point calculator/players.txt");
+        if (text.exists()) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        if (id == R.id.my_setting) {
+            // return true;
+            Intent menuIntent = new Intent(getApplicationContext(),
+                    SettingsActivity.class);
+            startActivityForResult(menuIntent, 100);
+        } else if (id == R.id.action_view) {
+
+            if (checkFile() && checkPermission(READ_FILE)) {
+                Intent intent = new Intent(getApplicationContext(), ScoreCard.class);
+               /* for (int i = 0; i < playerNo; i++) {
+                    // score.get(i).add(pmt[i]*point);
+                    intent.putIntegerArrayListExtra("Score" + i, score.get(i));
+                }*/
+                intent.putStringArrayListExtra("playerList", players);
+                startActivity(intent);
+            } else {
+                snackbar = Snackbar.make(coordinatorLayout, "No score has been set!!", Snackbar.LENGTH_SHORT);
+                snackbar.show();
+            }
+        } else if (id == 2) {
+            startActivity(new Intent(getApplicationContext(),
+                    HelpActivity.class));
+        } else if (id == 3) {
+            startActivity(new Intent(getApplicationContext(),
+                    AboutActivity.class));
+        } else if (id == R.id.action_calc) {
+
+            seen = Integer.parseInt(prefs.getString("seen", "3"));
+            unseen = Integer.parseInt(prefs.getString("unseen", "10"));
+            gameType = Integer.parseInt(prefs.getString("game_type", "3"));
+            point = Integer.parseInt(prefs.getString("point", "1"));
+
+            for (int x = 0; x < winList.size(); x++) {
+                if (winList.get(x).isChecked()) {
+                    index = x;
+                }
+            }
+            if (index == -1) {
+              /*  Toast.makeText(getApplicationContext(), "Please Select a Winner",
+                        Toast.LENGTH_SHORT).show();*/
+                snackbar = Snackbar.make(coordinatorLayout, "Please Select a Winner", Snackbar.LENGTH_SHORT);
+                snackbar.show();
+            } else {
+                int i;
+                boolean flag = false;
+                this.total = 0;
+                for (i = 0; i < playerNo; i++) {
+                    if (seenList.get(i).isChecked() || index == winList.get(i).getId() || gameType == 1) {
+                        try {
+                            pt[i] = Integer.parseInt(pointList.get(i).getText()
+                                    .toString());
+                        } catch (NumberFormatException e) {
+                           /* Toast.makeText(getApplicationContext(),
+                                    "One or more score is missing",
+                                    Toast.LENGTH_SHORT).show();*/
+                            snackbar = Snackbar.make(coordinatorLayout, "One or more score is missing", Snackbar.LENGTH_SHORT);
+                            snackbar.show();
+                            flag = true;
+                            break;
+                        }
+
+                    } else {
+                        pt[i] = 0;
+                    }
+                    this.total += pt[i];
+                }
+                if (!flag) {
+                    calculatePenenty();
+                    calculatePayment();
+                    setPayment();
+                    action_add.setEnabled(true);
+                    action_add.setIcon(R.drawable.ic_backup_white_24dp);
+                }
+            }
+        } else if (id == R.id.action_add) {
+
+
+            int i;
+            String penaltyList = "";
+            for (int x = 0; x < playerNo; x++) {
+                if (penalty15[x]) {
+                    penaltyList += x + ",";
+                }
+            }
+
+            editor.putString(PREFKEY, penaltyList);
+            editor.putBoolean("flag", true);
+            editor.commit();
+
+            flag = false;
+            try {
+                File root = new File(
+                        Environment.getExternalStorageDirectory(),
+                        "data/marriage point calculator");
+
+                if (!root.exists()) {
+                    root.mkdirs();
+                }
+                File gpxfile = new File(root, "score.txt");
+                FileWriter writer = new FileWriter(gpxfile, true);
+
+                String writeText = "";
+                for (i = 0; i < playerNo; i++) {
+                    writeText += pmt[i] * point + ",";
+                }
+                // int tmp=writeText.length();
+
+                writeText += "\n";
+                writer.append(writeText);
+                writer.flush();
+                writer.close();
+
+                gpxfile = new File(root, "players.txt");
+                writer = new FileWriter(gpxfile);
+
+                writeText = "";
+                for (i = 0; i < playerNo; i++) {
+                    writeText += players.get(i) + ",";
+                }
+                // int tmp=writeText.length();
+
+                writeText += "\n";
+                writer.append(writeText);
+                writer.flush();
+                writer.close();
+
+                // Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            nextIntent = new Intent(getApplicationContext(),
+                    ScoreCard.class);
+            // for (i = 0; i < playerNo; i++) {
+            // score.get(i).add(pmt[i] * point);
+            // nextIntent.putIntegerArrayListExtra("Score" + i,
+            // score.get(i));
+            // }
+            nextIntent.putStringArrayListExtra("playerList", players);
+            startActivity(nextIntent);
+
+
+        } else if (id == R.id.action_calc) {
+
+            seen = Integer.parseInt(prefs.getString("seen", "3"));
+            unseen = Integer.parseInt(prefs.getString("unseen", "10"));
+            gameType = Integer.parseInt(prefs.getString("game_type", "3"));
+            point = Integer.parseInt(prefs.getString("point", "1"));
+
+            for (int x = 0; x < winList.size(); x++) {
+                if (winList.get(x).isChecked()) {
+                    index = x;
+                }
+            }
+            if (index == -1) {
+                    /*Toast.makeText(getApplicationContext(), "Please Select a Winner",
+                            Toast.LENGTH_SHORT).show();*/
+                snackbar = Snackbar.make(coordinatorLayout, "Please Select a Winner", Snackbar.LENGTH_SHORT);
+                snackbar.show();
+            } else {
+                int i;
+                boolean flag = false;
+                total = 0;
+                for (i = 0; i < playerNo; i++) {
+                    if (seenList.get(i).isChecked() || index == winList.get(i).getId() || gameType == 1) {
+                        try {
+                            pt[i] = Integer.parseInt(pointList.get(i).getText()
+                                    .toString());
+                        } catch (NumberFormatException e) {
+                                /*Toast.makeText(getApplicationContext(),
+                                        "One or more score is missing",
+                                        Toast.LENGTH_SHORT).show();*/
+                            snackbar = Snackbar.make(coordinatorLayout, "One or more score is missing", Snackbar.LENGTH_SHORT);
+                            snackbar.show();
+                            flag = true;
+                            break;
+                        }
+
+                    } else {
+                        pt[i] = 0;
+                    }
+                    total += pt[i];
+                }
+                if (!flag) {
+                    calculatePenenty();
+                    calculatePayment();
+                    setPayment();
+
+                    //action_add.setEnabled(true);
+                    //action_add.setIcon(R.drawable.button_save);
+                }
+
+
+            }
+        } else if (id == R.id.action_add) {
+
+            checkPermission(MY_PERMISSIONS_REQUEST_WRITE_STORAGE);
+            int i;
+            String penaltyList = "";
+            for (int x = 0; x < playerNo; x++) {
+                if (penalty15[x]) {
+                    penaltyList += x + ",";
+                }
+            }
+
+            editor.putString(PREFKEY, penaltyList);
+            editor.putBoolean("flag", true);
+            editor.commit();
+
+            flag = false;
+            try {
+                File root = new File(
+                        Environment.getExternalStorageDirectory(),
+                        "data/marriage point calculator");
+
+                if (!root.exists()) {
+                    root.mkdirs();
+                }
+                File gpxfile = new File(root, "score.txt");
+                FileWriter writer = new FileWriter(gpxfile, true);
+
+                String writeText = "";
+                for (i = 0; i < playerNo; i++) {
+                    writeText += pmt[i] * point + ",";
+                }
+                // int tmp=writeText.length();
+
+                writeText += "\n";
+                writer.append(writeText);
+                writer.flush();
+                writer.close();
+
+                gpxfile = new File(root, "players.txt");
+                writer = new FileWriter(gpxfile);
+
+                writeText = "";
+                for (i = 0; i < playerNo; i++) {
+                    writeText += players.get(i) + ",";
+                }
+                // int tmp=writeText.length();
+
+                writeText += "\n";
+                writer.append(writeText);
+                writer.flush();
+                writer.close();
+
+                // Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            nextIntent = new Intent(getApplicationContext(),
+                    ScoreCard.class);
+            // for (i = 0; i < playerNo; i++) {
+            // score.get(i).add(pmt[i] * point);
+            // nextIntent.putIntegerArrayListExtra("Score" + i,
+            // score.get(i));
+            // }
+            nextIntent.putStringArrayListExtra("playerList", players);
+            startActivity(nextIntent);
+
+
+        }
+
+        return super.onOptionsItemSelected(item);
+
+    }
+
+    @Override
+    public void onClick(View v) {
+        // TODO Auto-generated method stub
+        seen = Integer.parseInt(prefs.getString("seen", "3"));
+        unseen = Integer.parseInt(prefs.getString("unseen", "10"));
+        gameType = Integer.parseInt(prefs.getString("game_type", "3"));
+        point = Integer.parseInt(prefs.getString("point", "1"));
+
+        for (int x = 0; x < winList.size(); x++) {
+            if (winList.get(x).isChecked()) {
+                index = x;
+            }
+        }
+
+
+        if (index == -1) {
+            Toast.makeText(getApplicationContext(), "Please Select a Winner",
+                    Toast.LENGTH_SHORT).show();
+
+        } else {
+            int i;
+            // if (calculate.getText().toString().compareTo("Calculate") == 0) {
+            if (v.getId() == 0) {
+                this.total = 0;
+                // testDisplay.setText(String.valueOf(total));
+                for (i = 0; i < playerNo; i++) {
+                    if (seenList.get(i).isChecked() || index == winList.get(i).getId() || gameType == 1) {
+                        try {
+                            pt[i] = Integer.parseInt(pointList.get(i).getText()
+                                    .toString());
+                        } catch (NumberFormatException e) {
+                            Toast.makeText(getApplicationContext(),
+                                    "One or more score is missing",
+                                    Toast.LENGTH_SHORT).show();
+                            // pt[i]=0;
+                            return;
+
+                        }
+
+                    } else {
+                        pt[i] = 0;
+                    }
+                    this.total += pt[i];
+                }
+                calculatePenenty();
+                calculatePayment();
+                setPayment();
+                save.setEnabled(true);
+
+            } else if (v.getId() == 1) {
+                // checkPermission();
+
+
+            }
+        }
+    }
+
+
+    public boolean checkPermission(int requestCode) {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            Log.i("error info", "permission denied");
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                Snackbar.make(coordinatorLayout, "Storage Permission is required to save score.", Snackbar.LENGTH_SHORT).show();
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        requestCode);
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+            } else {
+
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        requestCode);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+            return false;
+        } else {
+            if (requestCode == MY_PERMISSIONS_REQUEST_WRITE_STORAGE)
+                writeScoreFile();
+        }
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_WRITE_STORAGE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0) {
+                    //&& grantResults[0] == 0) {
+                    Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
+                    writeScoreFile();
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    // Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
+                    snackbar = Snackbar.make(coordinatorLayout, "Storage Permission Denied. Cannot save score.", Snackbar.LENGTH_SHORT);
+                    snackbar.show();
+                }
+                return;
+            }
+            case READ_FILE:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
+                    //  writeScoreFile();
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    // Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
+                    snackbar = Snackbar.make(coordinatorLayout, "Storage Permission Denied. Cannot save score.", Snackbar.LENGTH_SHORT);
+                    //snackbar.show();
+                }
+                return;
+
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+    }
+
+    private void writeScoreFile() {
+        int i;
+        String penaltyList = "";
+        for (int x = 0; x < playerNo; x++) {
+            if (penalty15[x]) {
+                penaltyList += x + ",";
+            }
+        }
+
+        editor.putString(PREFKEY, penaltyList);
+        editor.putBoolean("flag", true);
+        editor.commit();
+
+        flag = false;
+        try {
+            File root = new File(
+                    Environment.getExternalStorageDirectory(),
+                    "data/marriage point calculator");
+
+            if (!root.exists()) {
+                root.mkdirs();
+            }
+            File gpxfile = new File(root, "score.txt");
+            FileWriter writer = new FileWriter(gpxfile, true);
+
+            String writeText = "";
+            for (i = 0; i < playerNo; i++) {
+                writeText += pmt[i] * point + ",";
+            }
+            // int tmp=writeText.length();
+
+            writeText += "\n";
+            writer.append(writeText);
+            writer.flush();
+            writer.close();
+
+            gpxfile = new File(root, "players.txt");
+            writer = new FileWriter(gpxfile);
+
+            writeText = "";
+            for (i = 0; i < playerNo; i++) {
+                writeText += players.get(i) + ",";
+            }
+            // int tmp=writeText.length();
+
+            writeText += "\n";
+            writer.append(writeText);
+            writer.flush();
+            writer.close();
+            nextIntent = new Intent(getApplicationContext(),
+                    ScoreCard.class);
+            // for (i = 0; i < playerNo; i++) {
+            // score.get(i).add(pmt[i] * point);
+            // nextIntent.putIntegerArrayListExtra("Score" + i,
+            // score.get(i));
+            // }
+            nextIntent.putStringArrayListExtra("playerList", players);
+            startActivity(nextIntent);
+
+            // Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -595,8 +1443,19 @@ public class MainActivity extends Activity implements OnClickListener,
             // winList.get(win.getCheckedRadioButtonId()).setChecked(false);;
             // }
             save.setEnabled(false);
+
+            save_menu.setEnabled(false);
+            save_menu.setTextColor(getResources().getColor(R.color.save_menu));
+            action_add.setIcon(R.drawable.button_save_disabled);
+
         }
         super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
     }
 
     public void calculatePenenty() {
@@ -606,8 +1465,8 @@ public class MainActivity extends Activity implements OnClickListener,
             pnt[i] = 0;
         }
         for (int i = 0; i < playerNo; i++) {
-            if (seenList.get(i).isChecked()||lessPoints[i]||penalty15[i]) {
-                if (i == index||lessPoints[i]||penalty15[i]) {
+            if (seenList.get(i).isChecked() || lessPoints[i] || penalty15[i]) {
+                if (i == index || lessPoints[i] || penalty15[i]) {
                     pnt[i] = 0;
                 } else {
                     pnt[i] = this.seen;
@@ -673,15 +1532,15 @@ public class MainActivity extends Activity implements OnClickListener,
     }
 
     public void calculatePayment() {
-        boolean penaltyFlag=prefs.getBoolean("flag",false);
-        String penaltyList="";
-        int[] pListInt={-1,-1,-1,-1,-1,-1};
-        if(penaltyFlag){
-            penaltyList=prefs.getString(PREFKEY,null);
-            String[] pList=penaltyList.split(",");
-            editor.putBoolean("flag",false);
+        boolean penaltyFlag = prefs.getBoolean("flag", false);
+        String penaltyList = "";
+        int[] pListInt = {-1, -1, -1, -1, -1, -1};
+        if (penaltyFlag) {
+            penaltyList = prefs.getString(PREFKEY, null);
+            String[] pList = penaltyList.split(",");
+            editor.putBoolean("flag", false);
             editor.commit();
-           // Toast.makeText(this,penaltyList,Toast.LENGTH_LONG).show();
+            // Toast.makeText(this,penaltyList,Toast.LENGTH_LONG).show();
 
         }
         int i, j;
@@ -690,20 +1549,20 @@ public class MainActivity extends Activity implements OnClickListener,
         }
 
         for (i = 0; i < playerNo; i++) {
-            if(penaltyList.contains(""+i)){
-                total+=unseen;
+            if (penaltyList.contains("" + i)) {
+                total += unseen;
             }
         }
 
         // testDisplay.setText(String.valueOf(pnt[1]));
         for (i = 0; i < playerNo; i++) {
-            if (i != index&&!penalty15[i]) {
+            if (i != index && !penalty15[i]) {
                 pmt[i] = pt[i] * playerNo - total - pnt[i];
-            }else{
-                pmt[i] =  - total;
+            } else {
+                pmt[i] = -total;
             }
-            if(penaltyList.contains(""+i)){
-                pmt[i] =  - unseen;
+            if (penaltyList.contains("" + i)) {
+                pmt[i] = -unseen;
             }
         }
         for (i = 0; i < playerNo; i++) {
@@ -792,3 +1651,4 @@ public class MainActivity extends Activity implements OnClickListener,
     }
 
 }
+

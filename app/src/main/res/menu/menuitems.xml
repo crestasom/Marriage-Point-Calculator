@@ -4,14 +4,25 @@
 
     <!-- "Mark Favorite", should appear as action button if possible -->
     <item
-        android:id="@+id/action_favorite"
-        android:icon="@drawable/ic_check_circle_black_24dp"
-        android:title="cross"
+        android:id="@+id/action_calc"
+        android:title="Calculate"
+        android:icon="@drawable/ic_assignment_turned_in_black_24dp"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/action_add"
+        android:title="Save"
+        android:icon="@drawable/ic_backup_black_24dp"
+        android:enabled="false"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/action_view"
+        android:title="Save"
+        android:icon="@drawable/ic_visibility_black_24dp"
         app:showAsAction="always"/>
 
     <!-- Settings, should always be in the overflow -->
-    <item android:id="@+id/action_settings"
-        android:title="never"
-        app:showAsAction="never"/>
+
 
 </menu>

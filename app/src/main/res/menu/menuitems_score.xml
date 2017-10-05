@@ -4,19 +4,12 @@
 
     <!-- "Mark Favorite", should appear as action button if possible -->
     <item
-        android:id="@+id/action_calc"
-        android:title="Calculate"
-        app:actionLayout="@layout/menu_action_calculate_view"
-        app:showAsAction="always"/>
-
-    <item
-        android:id="@+id/action_add"
-        android:title="Save"
-        app:actionLayout="@layout/menu_action_save"
-        android:enabled="false"
+        android:id="@+id/action_undo"
+        android:title="Undo Last Score"
+        android:icon="@drawable/ic_undo_black_24dp"
         app:showAsAction="always"/>
 
     <!-- Settings, should always be in the overflow -->
 
-
+    <!--- app:actionLayout="@layout/menu_action_undo_view"-->
 </menu>

@@ -8,4 +8,4 @@
     android:textColor="#FFFFFF"
     android:textSize="20sp"
     android:textStyle="bold"
-    tools:text="Calculate"/>
+    tools:text="Undo Score"/>

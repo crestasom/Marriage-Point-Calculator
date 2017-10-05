@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <color name="colorPrimary">#FFFFFF</color>
-    <color name="colorPrimaryDark">#093F95</color>
+    <color name="colorPrimaryDark">#3972b8</color>
     <color name="textColorPrimary">#FFFFFF</color>
     <color name="windowBackground">#FFFFFF</color>
     <color name="navigationBarColor">#000000</color>
@@ -10,4 +9,5 @@
     <color name="dropDownBackground">#626464</color>
     <color name="toolBar">#00D00A</color>
     <color name="detailBackground">#DEE0DE</color>
+    <color name="save_menu">#332f2f</color>
 </resources>

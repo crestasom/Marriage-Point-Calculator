@@ -1,19 +1,22 @@
 package com.crestaSom.marriagepointcalculator;
 
-import static org.junit.Assert.*;
+/*import org.junit.After;
+import org.junit.Before;
+
+import static org.junit.Assert.*;*/
 
 /**
  * Created by user on 6/7/2017.
  */
 public class ScoreCardTest {
-    @org.junit.Before
+    /*@Before
     public void setUp() throws Exception {
 
     }
 
-    @org.junit.After
+    @After
     public void tearDown() throws Exception {
 
-    }
+    }*/
 
 }

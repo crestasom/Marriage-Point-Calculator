@@ -1,34 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.testappv4"
-    android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionCode="2"
+    android:versionName="1.0">
 
     <uses-sdk
         android:minSdkVersion="14"
         android:targetSdkVersion="14" />
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/index"
+        android:icon="@drawable/icon"
         android:label="Marriage Point Calculator"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         <activity
             android:name="com.crestaSom.marriagepointcalculator.MainActivity"
-            android:screenOrientation="portrait"
-            android:label="Marriage Point Calculator" >
-        </activity>
+            android:label="Marriage Point Calculator"
+            android:screenOrientation="portrait" />
         <activity
             android:name="com.crestaSom.marriagepointcalculator.Welcome_Activity"
-            android:label="@string/title_activity_welcome_" >
-        </activity>
+            android:label="@string/title_activity_welcome_" />
         <activity
-            android:screenOrientation="portrait"
             android:name="com.crestaSom.marriagepointcalculator.PlayerSelection"
-            android:label="Player Details" >
-            <intent-filter android:label="Marriage Point Calculator" >
+            android:label="Marriage Point Calculator">
+            <intent-filter android:label="Marriage Point Calculator">
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -36,30 +35,24 @@
         </activity>
         <activity
             android:name="com.crestaSom.marriagepointcalculator.Test"
-            android:label="@string/title_activity_test" >
-        </activity>
+            android:label="@string/title_activity_test" />
         <activity
             android:name="com.crestaSom.marriagepointcalculator.ScoreCard"
-            android:screenOrientation="landscape"
-            android:label="@string/title_activity_score_card" >
-        </activity>
+            android:label="@string/title_activity_score_card"
+            android:parentActivityName="com.crestaSom.marriagepointcalculator.CalculatorActivity" />
         <activity
             android:name="com.crestaSom.marriagepointcalculator.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:theme="@android:style/Theme.Holo.Dialog" >
-        </activity>
+            android:theme="@android:style/Theme.Holo.Dialog" />
         <activity
             android:name="com.crestaSom.marriagepointcalculator.HelpActivity"
             android:label="@string/title_activity_help"
-             android:theme="@android:style/Theme.Translucent.NoTitleBar"
-             >
-        </activity>
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity
             android:name="com.crestaSom.marriagepointcalculator.AboutActivity"
             android:label="@string/title_activity_about"
-             android:theme="@android:style/Theme.Translucent.NoTitleBar"
-             >
-        </activity>
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity android:name="com.crestaSom.marriagepointcalculator.CalculatorActivity"></activity>
     </application>
 
 </manifest>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:padding="6dp"
+    android:background="@drawable/rounded_layout_main"
+    android:layout_marginBottom="15dp"
+    android:layout_height="wrap_content"
+    android:translationZ="6dp">
+
+    <RadioButton
+        android:id="@+id/win"
+        android:layout_width="0dp"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1" />
+
+    <TextView
+        android:id="@+id/playerNames"
+        android:layout_width="0dp"
+        android:background="@drawable/rounded_border"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.20"
+        android:layout_gravity="center"
+        android:textAppearance="@style/text_style"
+        android:gravity="center_horizontal"
+        android:text="RAJENDR" />
+
+    <CheckBox
+        android:id="@+id/seen"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        />
+
+    <EditText
+        android:id="@+id/score"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.2"
+        android:ems="5"
+        android:textSize="18sp"
+        android:background="@drawable/rounded_border"
+        android:gravity="center"
+        android:inputType="number"
+        android:hint="0-100" />
+
+    <TextView
+        android:id="@+id/result"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_weight="0.15"
+        android:textAppearance="@style/header_text"
+
+        android:text="0" />
+
+    <TextView
+        android:id="@+id/payment"
+        android:layout_width="0dp"
+        android:gravity="center"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.2"
+        android:textAppearance="@style/header_text"
+
+        android:text="0" />
+
+</LinearLayout>

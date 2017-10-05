@@ -1,101 +1,89 @@
-<ScrollView
-     xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-   android:background="@color/colorAccent"
+    android:id="@+id/relativelayout"
+    tools:context="com.crestaSom.marriagepointcalculator.PlayerSelection">
 
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_child_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimaryDark"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Dark" />
 
-
-    tools:context="com.example.marriagepointcalculator.PlayerSelection" >
-
-    <LinearLayout
-        android:id="@+id/linearLayout2"
+    <ScrollView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-
-
-        android:orientation="vertical" >
-
-        <LinearLayout
-            android:id="@+id/linearLayout10"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_marginTop="19dp"
-            android:orientation="horizontal" >
-
-            <TextView
-                android:id="@+id/textView1"
-
-                android:gravity="center"
-                style="@style/text_style"
-                android:textSize="20sp"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:text="Please Enter Number of Players"
-                 />
-        </LinearLayout>
+        android:layout_below="@+id/my_child_toolbar"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="10dp">
 
         <LinearLayout
-            android:id="@+id/linearLayout1"
+            android:id="@+id/linearLayout2"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:orientation="vertical">
 
-            android:layout_marginTop="19dp"
-            android:orientation="horizontal"
-            android:weightSum="1">
-
-            <TextView
-                android:id="@+id/textView2"
-                style="@style/text_style"
-                android:gravity="center"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/linearLayout10"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="No. of Players"
-                android:width="160dp" />
+                android:layout_alignParentTop="true"
+                android:orientation="horizontal"
+                android:weightSum="100"
+                android:layout_marginTop="19dp">
 
-            <EditText
-                android:id="@+id/playerNo"
-                android:layout_width="29dp"
-                android:background="@drawable/rounded_layout"
-                android:layout_height="45dp"
-                android:textSize="20sp"
-                android:gravity="center"
-                android:inputType="number"
-                android:width="100dp"
-                style="@drawable/rounded_edittext"
-                android:layout_weight="0.36">
+                <EditText
+                    android:id="@+id/playerNo"
+                    style="@drawable/rounded_edittext"
 
-                <requestFocus />
-            </EditText>
+                    android:layout_width="wrap_content"
+                    android:layout_height="45dp"
+                    android:hint="  Enter no. of Players  (2-6)  "
+                    android:background="@drawable/rounded_layout"
+                    android:layout_weight="80"
+                    android:layout_marginRight="15dp"
+                    android:gravity="center"
+                    android:inputType="number"
+                    android:textSize="16sp"
+                    >
+                    <requestFocus />
+                </EditText>
 
-            <Button
-                android:id="@+id/submit"
-                android:background="@drawable/custom_button"
-                style="@style/button_text"
-                android:layout_marginLeft="25dp"
-                android:layout_width="wrap_content"
+                    <Button
+                        android:id="@+id/submit"
+                        style="@style/button_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:background="@drawable/custom_button"
+                        android:layout_weight="20"
+                        android:gravity="center"
+                        android:text="Submit"
+
+                        android:textSize="20sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/playerNames"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="Submit"
-                android:textSize="15sp" />
-        </LinearLayout>
-         <LinearLayout
-            android:id="@+id/playerNames"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/linearLayout2"
-            android:layout_below="@+id/linearLayout2"
-            android:layout_marginTop="20dp"
-            android:orientation="vertical" >
-        </LinearLayout>
-    </LinearLayout>
+                android:layout_alignLeft="@+id/linearLayout2"
+                android:layout_below="@+id/linearLayout2"
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:weightSum="1">
 
-    
-       
-   
-
-</ScrollView>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>
